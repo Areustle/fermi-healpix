@@ -1,0 +1,9 @@
+package:
+  name: fermi-healpix
+version: "0.0.0"
+
+source:
+  url: https://svwh.dl.sourceforge.net/project/healpix/Healpix_3.30/healpix_cxx-3.30.0.tar.gz
+
+build:
+  number: 0
