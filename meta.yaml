@@ -3,7 +3,7 @@ package:
 version: "0.0.0"
 
 source:
-  url: https://iweb.dl.sourceforge.net/project/healpix/Healpix_3.31/Healpix_3.31_2016Aug26.tar.gz
+  git_url: https://github.com/Areustle/fermi-healpix.git
 
 build:
   number: 0
