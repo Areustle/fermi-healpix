@@ -103,14 +103,16 @@ AC_LANG_POP([C++])
 
 AC_ARG_WITH(libcfitsio,
   [  --with-libcfitsio=<path>         prefix to the cfitsio installation],
-  [CPPFLAGS="-I$withval/include $CPPFLAGS"
+  [CFITSIO_LIBS="-L$withval/lib -lm -lcfitsio"
+	 CPPFLAGS="-I$withval/include $CPPFLAGS"
    LDFLAGS="-L$withval/lib $LDFLAGS"])
 AC_ARG_WITH(libcfitsio-include,
   [  --with-libcfitsio-include=<path> path containing the cfitsio headers],
-  [CPPFLAGS="-I$withval $CPPFLAGS"])
+  [CFITSIO_LIBS="-L$withval/lib -lm -lcfitsio"])
 AC_ARG_WITH(libcfitsio-lib,
   [  --with-libcfitsio-lib=<path>     path containing the cfitsio library],
-  [   LDFLAGS="-L$withval $LDFLAGS"])
+  [CFITSIO_CFLAGS="-L$withval/lib"
+	 LDFLAGS="-L$withval $LDFLAGS"])
 
 SILENT_RULE=".SILENT:"
 AC_ARG_ENABLE(noisy-make,
@@ -231,12 +233,18 @@ AC_CHECK_HEADERS([fitsio.h], [:], AC_MSG_ERROR([could not find the cfitsio heade
 AC_SUBST(SILENT_RULE)
 AC_SUBST(CC)
 AC_SUBST(CCFLAGS_NO_C)
+AC_SUBST(CFITSIO_LIBS)
 AC_SUBST(CXX)
 AC_SUBST(CXXCFLAGS_NO_C)
 AC_SUBST(LDCCFLAGS)
 AC_SUBST(LDCXXFLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(ARCREATE)
+
+dnl
+dnl Create pkgconfig .pc file.
+dnl
+AX_CREATE_PKGCONFIG_INFO(,,,,[$OPENMP_CFLAGS $CFITSIO_CFLAGS])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
