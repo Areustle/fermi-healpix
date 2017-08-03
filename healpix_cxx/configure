@@ -632,13 +632,14 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-pkgconfig_libfile
-pkgconfig_libdir
-PKG_CONFIG_LIBDIR
-PKG_CONFIG_PATH
-PKG_CONFIG
-CFITSIO_LIBS
-CFITSIO_CFLAGS
+ARCREATE
+LDCXXFLAGS
+LDCCFLAGS
+CXXCFLAGS_NO_C
+CCFLAGS_NO_C
+SILENT_RULE
+GXXVERSION
+GCCVERSION
 OPENMP_CXXFLAGS
 CXXCPP
 am__fastdepCXX_FALSE
@@ -780,6 +781,11 @@ with_sysroot
 enable_libtool_lock
 enable_native_optimizations
 enable_openmp
+with_libcfitsio
+with_libcfitsio_include
+with_libcfitsio_lib
+enable_noisy_make
+enable_debug
 '
       ac_precious_vars='build_alias
 host_alias
@@ -794,12 +800,7 @@ CPP
 CXX
 CXXFLAGS
 CCC
-CXXCPP
-CFITSIO_CFLAGS
-CFITSIO_LIBS
-PKG_CONFIG
-PKG_CONFIG_PATH
-PKG_CONFIG_LIBDIR'
+CXXCPP'
 
 
 # Initialize some variables set by options.
@@ -1437,6 +1438,11 @@ Optional Features:
                           by compiling with -march=native [default=no]
 
   --disable-openmp        do not use OpenMP
+  --enable-noisy-make     enable detailed make output
+  --enable-debug          enable generation of debugging symbols
+  --enable-native-optimizations
+                          Enable non-portable optimizations for your own CPU
+                          by compiling with -march=native [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1449,6 +1455,9 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
+  --with-libcfitsio=<path>         prefix to the cfitsio installation
+  --with-libcfitsio-include=<path> path containing the cfitsio headers
+  --with-libcfitsio-lib=<path>     path containing the cfitsio library
 
 Some influential environment variables:
   CC          C compiler command
@@ -1464,17 +1473,6 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
-  CFITSIO_CFLAGS
-              compiler flags needed for building with cfitsio, if not found by
-              pkg-config
-  CFITSIO_LIBS
-              linker flags needed for building with cfitsio, if not found by
-              pkg-config
-  PKG_CONFIG  path to pkg-config utility
-  PKG_CONFIG_PATH
-              directories to add to pkg-config's search path
-  PKG_CONFIG_LIBDIR
-              path overriding pkg-config's built-in search path
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2376,7 +2374,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-am__api_version='1.15'
+am__api_version='1.13'
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -2577,8 +2575,8 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# Expand $ac_aux_dir to an absolute path.
-am_aux_dir=`cd "$ac_aux_dir" && pwd`
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -2597,7 +2595,7 @@ else
 $as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
 fi
 
-if test x"${install_sh+set}" != xset; then
+if test x"${install_sh}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -2925,8 +2923,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
-# We need awk for the "check" target (and possibly the TAP driver).  The
-# system "awk" is bad on some platforms.
+# We need awk for the "check" target.  The system "awk" is bad on
+# some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
@@ -2941,48 +2939,6 @@ am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
 
 
 
-
-# POSIX will say in a future version that running "rm -f" with no argument
-# is OK; and we want to be able to make that assumption in our Makefile
-# recipes.  So use an aggressive probe to check that the usage we want is
-# actually supported "in the wild" to an acceptable degree.
-# See automake bug#10828.
-# To make any issue more visible, cause the running configure to be aborted
-# by default if the 'rm' program in use doesn't match our expectations; the
-# user can still override this though.
-if rm -f && rm -fr && rm -rf; then : OK; else
-  cat >&2 <<'END'
-Oops!
-
-Your 'rm' program seems unable to run without file operands specified
-on the command line, even when the '-f' option is present.  This is contrary
-to the behaviour of most rm programs out there, and not conforming with
-the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
-
-Please tell bug-automake@gnu.org about your system, including the value
-of your $PATH and any error possibly output before this message.  This
-can help us improve future automake versions.
-
-END
-  if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
-    echo 'Configuration will proceed anyway, since you have set the' >&2
-    echo 'ACCEPT_INFERIOR_RM_PROGRAM variable to "yes"' >&2
-    echo >&2
-  else
-    cat >&2 <<'END'
-Aborting the configuration process, to ensure you take notice of the issue.
-
-You can download and install GNU coreutils to get an 'rm' implementation
-that behaves properly: <http://www.gnu.org/software/coreutils/>.
-
-If you want to complete the configuration process using your problematic
-'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
-to "yes", and re-run configure.
-
-END
-    as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
-  fi
-fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
@@ -3860,65 +3816,6 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC understands -c and -o together" >&5
-$as_echo_n "checking whether $CC understands -c and -o together... " >&6; }
-if ${am_cv_prog_cc_c_o+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-  # Make sure it works both with $CC and with simple cc.
-  # Following AC_PROG_CC_C_O, we do the test twice because some
-  # compilers refuse to overwrite an existing .o file with -o,
-  # though they will create one.
-  am_cv_prog_cc_c_o=yes
-  for am_i in 1 2; do
-    if { echo "$as_me:$LINENO: $CC -c conftest.$ac_ext -o conftest2.$ac_objext" >&5
-   ($CC -c conftest.$ac_ext -o conftest2.$ac_objext) >&5 2>&5
-   ac_status=$?
-   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-   (exit $ac_status); } \
-         && test -f conftest2.$ac_objext; then
-      : OK
-    else
-      am_cv_prog_cc_c_o=no
-      break
-    fi
-  done
-  rm -f core conftest*
-  unset am_i
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_prog_cc_c_o" >&5
-$as_echo "$am_cv_prog_cc_c_o" >&6; }
-if test "$am_cv_prog_cc_c_o" != yes; then
-   # Losing compiler, so override with the script.
-   # FIXME: It is wrong to rewrite CC.
-   # But if we don't then we get into trouble of one sort or another.
-   # A longer-term fix would be to have automake use am__CC in this case,
-   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
-   CC="$am_aux_dir/compile $CC"
-fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
 depcc="$CC"   am_compiler_list=
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking dependency style of $depcc" >&5
@@ -4155,13 +4052,7 @@ $as_echo_n "checking the archiver ($AR) interface... " >&6; }
 if ${am_cv_ar_interface+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-   am_cv_ar_interface=ar
+  am_cv_ar_interface=ar
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 int some_variable = 0;
@@ -4192,11 +4083,6 @@ if ac_fn_c_try_compile "$LINENO"; then :
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-   ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_ar_interface" >&5
@@ -17014,205 +16900,143 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Check whether --with-libcfitsio was given.
+if test "${with_libcfitsio+set}" = set; then :
+  withval=$with_libcfitsio; CPPFLAGS="-I$withval/include $CPPFLAGS"
+   LDFLAGS="-L$withval/lib $LDFLAGS"
+fi
 
 
+# Check whether --with-libcfitsio-include was given.
+if test "${with_libcfitsio_include+set}" = set; then :
+  withval=$with_libcfitsio_include; CPPFLAGS="-I$withval $CPPFLAGS"
+fi
 
 
+# Check whether --with-libcfitsio-lib was given.
+if test "${with_libcfitsio_lib+set}" = set; then :
+  withval=$with_libcfitsio_lib;    LDFLAGS="-L$withval $LDFLAGS"
+fi
 
 
+SILENT_RULE=".SILENT:"
+# Check whether --enable-noisy-make was given.
+if test "${enable_noisy_make+set}" = set; then :
+  enableval=$enable_noisy_make; if test "$enableval" = yes; then
+     SILENT_RULE=""
+   fi
+fi
 
 
-if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
-	if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
-set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PKG_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
-  ;;
+ENABLE_DEBUG=no
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; if test "$enableval" = yes; then
+     ENABLE_DEBUG=yes
+   fi
+fi
+
+
+ENABLE_NATIVE=no
+# Check whether --enable-native-optimizations was given.
+if test "${enable_native_optimizations+set}" = set; then :
+  enableval=$enable_native_optimizations; if test "$enableval" = yes; then
+     ENABLE_NATIVE=yes
+   fi
+fi
+
+
+case $CCTYPE in
+  gcc)
+    CCFLAGS="-O3 -ffast-math -fomit-frame-pointer -fno-tree-vectorize"
+    GCCVERSION="`$CC -dumpversion 2>&1`"
+    echo "Using gcc version $GCCVERSION"
+
+    case $system in
+      Darwin-*)
+        ;;
+      *)
+        CCFLAGS="$CCFLAGS -ffunction-sections -fdata-sections"
+        ;;
+    esac
+
+    gcc43=`echo $GCCVERSION | grep -c '4\.[3456789]'`
+
+    if test $ENABLE_NATIVE = yes; then
+      if test $gcc43 -gt 0; then
+        CCFLAGS="$CCFLAGS -march=native"
+      fi
+    fi
+    ;;
+  icc)
+    CCFLAGS="-O3 -Wbrief -Wall -openmp-report0 -wd383,981,1419,1572"
+    if test $ENABLE_NATIVE = yes; then
+      CCFLAGS="$CCFLAGS -xHOST"
+    fi
+    ;;
   *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
+    CCFLAGS="-O2"
+    # Don't do anything now
+    ;;
 esac
-fi
-PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-if test -n "$PKG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
-$as_echo "$PKG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
 
+case $CXXTYPE in
+  g++)
+    CXXCFLAGS="-O2 -ffast-math -fomit-frame-pointer"
+    GXXVERSION="`$CXX -dumpversion 2>&1`"
+    echo "Using g++ version $GXXVERSION"
 
-fi
-if test -z "$ac_cv_path_PKG_CONFIG"; then
-  ac_pt_PKG_CONFIG=$PKG_CONFIG
-  # Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $ac_pt_PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
-  ;;
+    case $system in
+      Darwin-*)
+        ;;
+      *)
+        CXXCFLAGS="$CXXCFLAGS -ffunction-sections -fdata-sections"
+        LDFLAGS="$LDFLAGS -Wl,--gc-sections"
+        ;;
+    esac
+
+    gxx43=`echo $GXXVERSION | grep -c '4\.[3456789]'`
+
+    if test $ENABLE_NATIVE = yes; then
+      if test $gxx43 -gt 0; then
+        CXXCFLAGS="$CXXCFLAGS -march=native"
+      fi
+    fi
+    ;;
+  icpc)
+    CXXCFLAGS="-O3 -Wbrief -Wall -openmp-report0 -wd383,444,981,1572"
+    if test $ENABLE_NATIVE = yes; then
+      CXXCFLAGS="$CXXCFLAGS -xHOST"
+    fi
+    ;;
   *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
+    CXXCFLAGS="-O2"
+    ;;
 esac
-fi
-ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
-if test -n "$ac_pt_PKG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
-$as_echo "$ac_pt_PKG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
 
-  if test "x$ac_pt_PKG_CONFIG" = x; then
-    PKG_CONFIG=""
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
+case $system in
+  Darwin-*)
+    ARCREATE="libtool -static -o"
+    ;;
+  *)
+    ARCREATE="ar cr"
+    ;;
 esac
-    PKG_CONFIG=$ac_pt_PKG_CONFIG
-  fi
-else
-  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+
+CCFLAGS="$CCFLAGS $OPENMP_CFLAGS"
+CXXCFLAGS="$CXXCFLAGS $OPENMP_CXXFLAGS"
+
+if test $ENABLE_DEBUG = yes; then
+  CCFLAGS="$CCFLAGS -g"
+  CXXCFLAGS="$CXXCFLAGS -g"
 fi
 
-fi
-if test -n "$PKG_CONFIG"; then
-	_pkg_min_version=0.9.0
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
-$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
-	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		PKG_CONFIG=""
-	fi
-fi
+CCFLAGS_NO_C="$CCFLAGS $CPPFLAGS"
+CXXCFLAGS_NO_C="$CXXCFLAGS $CPPFLAGS"
 
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cfitsio" >&5
-$as_echo_n "checking for cfitsio... " >&6; }
+LDCCFLAGS="$LDFLAGS $CCFLAGS"
+LDCXXFLAGS="$LDFLAGS $CXXCFLAGS"
 
-if test -n "$CFITSIO_CFLAGS"; then
-    pkg_cv_CFITSIO_CFLAGS="$CFITSIO_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cfitsio\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cfitsio") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_CFITSIO_CFLAGS=`$PKG_CONFIG --cflags "cfitsio" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$CFITSIO_LIBS"; then
-    pkg_cv_CFITSIO_LIBS="$CFITSIO_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cfitsio\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cfitsio") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_CFITSIO_LIBS=`$PKG_CONFIG --libs "cfitsio" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        CFITSIO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cfitsio" 2>&1`
-        else
-	        CFITSIO_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cfitsio" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$CFITSIO_PKG_ERRORS" >&5
-
-	CFITSIO_LIBS=-lcfitsio
-elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	CFITSIO_LIBS=-lcfitsio
-else
-	CFITSIO_CFLAGS=$pkg_cv_CFITSIO_CFLAGS
-	CFITSIO_LIBS=$pkg_cv_CFITSIO_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-fi
-CFITSIO_LIBS="$CFITSIO_LIBS -lm"
-
-
-save_CFLAGS=$CFLAGS
-save_LIBS=$LIBS
-CFLAGS="$CFLAGS $CFITSIO_CFLAGS"
-LIBS="$LIBS $CFITSIO_LIBS"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ffgnrwll in -lcfitsio" >&5
 $as_echo_n "checking for ffgnrwll in -lcfitsio... " >&6; }
 if ${ac_cv_lib_cfitsio_ffgnrwll+:} false; then :
@@ -17269,194 +17093,15 @@ fi
 
 done
 
-CFLAGS=$save_CFLAGS
-LIBS=$save_LIBS
 
 
 
 
-# we need the expanded forms...
-test "x$prefix" = xNONE && prefix=$ac_default_prefix
-test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig libname" >&5
-$as_echo_n "checking our pkgconfig libname... " >&6; }
-test ".$ax_create_pkgconfig_libname" != "." || \
-ax_create_pkgconfig_libname="${PACKAGE_NAME}"
-test ".$ax_create_pkgconfig_libname" != "." || \
-ax_create_pkgconfig_libname="$PACKAGE"
-ax_create_pkgconfig_libname=`eval echo "$ax_create_pkgconfig_libname"`
-ax_create_pkgconfig_libname=`eval echo "$ax_create_pkgconfig_libname"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_libname" >&5
-$as_echo "$ax_create_pkgconfig_libname" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig version" >&5
-$as_echo_n "checking our pkgconfig version... " >&6; }
-test ".$ax_create_pkgconfig_version" != "." || \
-ax_create_pkgconfig_version="${PACKAGE_VERSION}"
-test ".$ax_create_pkgconfig_version" != "." || \
-ax_create_pkgconfig_version="$VERSION"
-ax_create_pkgconfig_version=`eval echo "$ax_create_pkgconfig_version"`
-ax_create_pkgconfig_version=`eval echo "$ax_create_pkgconfig_version"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_version" >&5
-$as_echo "$ax_create_pkgconfig_version" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig_libdir" >&5
-$as_echo_n "checking our pkgconfig_libdir... " >&6; }
-test ".$pkgconfig_libdir" = "." && \
-pkgconfig_libdir='${libdir}/pkgconfig'
-ax_create_pkgconfig_libdir=`eval echo "$pkgconfig_libdir"`
-ax_create_pkgconfig_libdir=`eval echo "$ax_create_pkgconfig_libdir"`
-ax_create_pkgconfig_libdir=`eval echo "$ax_create_pkgconfig_libdir"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkgconfig_libdir" >&5
-$as_echo "$pkgconfig_libdir" >&6; }
-test "$pkgconfig_libdir" != "$ax_create_pkgconfig_libdir" && (
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: expanded our pkgconfig_libdir... $ax_create_pkgconfig_libdir" >&5
-$as_echo "expanded our pkgconfig_libdir... $ax_create_pkgconfig_libdir" >&6; })
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig_libfile" >&5
-$as_echo_n "checking our pkgconfig_libfile... " >&6; }
-test ".$pkgconfig_libfile" != "." || \
-pkgconfig_libfile="$ax_create_pkgconfig_libname.pc"
-ax_create_pkgconfig_libfile=`eval echo "$pkgconfig_libfile"`
-ax_create_pkgconfig_libfile=`eval echo "$ax_create_pkgconfig_libfile"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkgconfig_libfile" >&5
-$as_echo "$pkgconfig_libfile" >&6; }
-test "$pkgconfig_libfile" != "$ax_create_pkgconfig_libfile" && (
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: expanded our pkgconfig_libfile... $ax_create_pkgconfig_libfile" >&5
-$as_echo "expanded our pkgconfig_libfile... $ax_create_pkgconfig_libfile" >&6; })
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our package / suffix" >&5
-$as_echo_n "checking our package / suffix... " >&6; }
-ax_create_pkgconfig_suffix="$program_suffix"
-test ".$ax_create_pkgconfig_suffix" != .NONE || ax_create_pkgconfig_suffix=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PACKAGE_NAME} / ${ax_create_pkgconfig_suffix}" >&5
-$as_echo "${PACKAGE_NAME} / ${ax_create_pkgconfig_suffix}" >&6; }
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig description" >&5
-$as_echo_n "checking our pkgconfig description... " >&6; }
-ax_create_pkgconfig_description="$PACKAGE_SUMMARY"
-test ".$ax_create_pkgconfig_description" != "." || \
-ax_create_pkgconfig_description="$ax_create_pkgconfig_libname Library"
-ax_create_pkgconfig_description=`eval echo "$ax_create_pkgconfig_description"`
-ax_create_pkgconfig_description=`eval echo "$ax_create_pkgconfig_description"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_description" >&5
-$as_echo "$ax_create_pkgconfig_description" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig requires" >&5
-$as_echo_n "checking our pkgconfig requires... " >&6; }
-ax_create_pkgconfig_requires="$PACKAGE_REQUIRES"
-ax_create_pkgconfig_requires=`eval echo "$ax_create_pkgconfig_requires"`
-ax_create_pkgconfig_requires=`eval echo "$ax_create_pkgconfig_requires"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_requires" >&5
-$as_echo "$ax_create_pkgconfig_requires" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig ext libs" >&5
-$as_echo_n "checking our pkgconfig ext libs... " >&6; }
-ax_create_pkgconfig_pkglibs="$PACKAGE_LIBS"
-test ".$ax_create_pkgconfig_pkglibs" != "." || ax_create_pkgconfig_pkglibs="-l$ax_create_pkgconfig_libname"
-ax_create_pkgconfig_libs="$ax_create_pkgconfig_pkglibs $LIBS"
-ax_create_pkgconfig_libs=`eval echo "$ax_create_pkgconfig_libs"`
-ax_create_pkgconfig_libs=`eval echo "$ax_create_pkgconfig_libs"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_libs" >&5
-$as_echo "$ax_create_pkgconfig_libs" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig cppflags" >&5
-$as_echo_n "checking our pkgconfig cppflags... " >&6; }
-ax_create_pkgconfig_cppflags="$OPENMP_CFLAGS $CFITSIO_CFLAGS"
-ax_create_pkgconfig_cppflags=`eval echo "$ax_create_pkgconfig_cppflags"`
-ax_create_pkgconfig_cppflags=`eval echo "$ax_create_pkgconfig_cppflags"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_cppflags" >&5
-$as_echo "$ax_create_pkgconfig_cppflags" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking our pkgconfig ldflags" >&5
-$as_echo_n "checking our pkgconfig ldflags... " >&6; }
-ax_create_pkgconfig_ldflags="$PACKAGE_LDFLAGS"
-ax_create_pkgconfig_ldflags=`eval echo "$ax_create_pkgconfig_ldflags"`
-ax_create_pkgconfig_ldflags=`eval echo "$ax_create_pkgconfig_ldflags"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_create_pkgconfig_ldflags" >&5
-$as_echo "$ax_create_pkgconfig_ldflags" >&6; }
-
-test ".$ax_create_pkgconfig_generate" != "." || \
-ax_create_pkgconfig_generate="$ax_create_pkgconfig_libname.pc"
-ax_create_pkgconfig_generate=`eval echo "$ax_create_pkgconfig_generate"`
-ax_create_pkgconfig_generate=`eval echo "$ax_create_pkgconfig_generate"`
-test "$pkgconfig_libfile" != "$ax_create_pkgconfig_generate" && (
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: generate the pkgconfig later... $ax_create_pkgconfig_generate" >&5
-$as_echo "generate the pkgconfig later... $ax_create_pkgconfig_generate" >&6; })
-
-if test ".$ax_create_pkgconfig_src_libdir" = "." ; then
-ax_create_pkgconfig_src_libdir=`pwd`
-ax_create_pkgconfig_src_libdir=`$as_dirname -- "$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" ||
-$as_expr X"$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" : 'X\(//\)[^/]' \| \
-	 X"$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" : 'X\(//\)$' \| \
-	 X"$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$ax_create_pkgconfig_src_libdir/$ax_create_pkgconfig_generate" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)[^/].*/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
-	    s//\1/
-	    q
-	  }
-	  s/.*/./; q'`
-test ! -d $ax_create_pkgconfig_src_libdir/src || \
-ax_create_pkgconfig_src_libdir="$ax_create_pkgconfig_src_libdir/src"
-case ".$objdir" in
-*libs) ax_create_pkgconfig_src_libdir="$ax_create_pkgconfig_src_libdir/$objdir" ;; esac
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: noninstalled pkgconfig -L $ax_create_pkgconfig_src_libdir" >&5
-$as_echo "noninstalled pkgconfig -L $ax_create_pkgconfig_src_libdir" >&6; }
-fi
-
-if test ".$ax_create_pkgconfig_src_headers" = "." ; then
-ax_create_pkgconfig_src_headers=`pwd`
-v="$ac_top_srcdir" ;
-test ".$v" != "." || v="$ax_spec_dir"
-test ".$v" != "." || v="$srcdir"
-case "$v" in /*) ax_create_pkgconfig_src_headers="" ;; esac
-ax_create_pkgconfig_src_headers=`$as_dirname -- "$ax_create_pkgconfig_src_headers/$v/x" ||
-$as_expr X"$ax_create_pkgconfig_src_headers/$v/x" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$ax_create_pkgconfig_src_headers/$v/x" : 'X\(//\)[^/]' \| \
-	 X"$ax_create_pkgconfig_src_headers/$v/x" : 'X\(//\)$' \| \
-	 X"$ax_create_pkgconfig_src_headers/$v/x" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$ax_create_pkgconfig_src_headers/$v/x" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)[^/].*/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
-	    s//\1/
-	    q
-	  }
-	  s/.*/./; q'`
-test ! -d $ax_create_pkgconfig_src_headers/include || \
-ax_create_pkgconfig_src_headers="$ax_create_pkgconfig_src_headers/include"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: noninstalled pkgconfig -I $ax_create_pkgconfig_src_headers" >&5
-$as_echo "noninstalled pkgconfig -I $ax_create_pkgconfig_src_headers" >&6; }
-fi
-
-
-ac_config_commands="$ac_config_commands $ax_create_pkgconfig_generate"
 
 
 ac_config_files="$ac_config_files Makefile"
@@ -18583,28 +18228,6 @@ fi
 
 
 
-ax_create_pkgconfig_generate="$ax_create_pkgconfig_generate"
-pkgconfig_prefix='$prefix'
-pkgconfig_execprefix='$exec_prefix'
-pkgconfig_bindir='$bindir'
-pkgconfig_libdir='$libdir'
-pkgconfig_includedir='$includedir'
-pkgconfig_datarootdir='$datarootdir'
-pkgconfig_datadir='$datadir'
-pkgconfig_sysconfdir='$sysconfdir'
-pkgconfig_suffix='$ax_create_pkgconfig_suffix'
-pkgconfig_package='$PACKAGE_NAME'
-pkgconfig_libname='$ax_create_pkgconfig_libname'
-pkgconfig_description='$ax_create_pkgconfig_description'
-pkgconfig_version='$ax_create_pkgconfig_version'
-pkgconfig_requires='$ax_create_pkgconfig_requires'
-pkgconfig_libs='$ax_create_pkgconfig_libs'
-pkgconfig_ldflags='$ax_create_pkgconfig_ldflags'
-pkgconfig_cppflags='$ax_create_pkgconfig_cppflags'
-pkgconfig_src_libdir='$ax_create_pkgconfig_src_libdir'
-pkgconfig_src_headers='$ax_create_pkgconfig_src_headers'
-
-
 _ACEOF
 
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -18615,7 +18238,6 @@ do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
-    "$ax_create_pkgconfig_generate") CONFIG_COMMANDS="$CONFIG_COMMANDS $ax_create_pkgconfig_generate" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
@@ -19848,133 +19470,6 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
 # ### END LIBTOOL TAG CONFIG: CXX
 _LT_EOF
 
- ;;
-    "$ax_create_pkgconfig_generate":C)
-pkgconfig_generate="$ax_create_pkgconfig_generate"
-if test ! -f "$pkgconfig_generate.in"
-then generate="true"
-elif grep ' generated by configure ' $pkgconfig_generate.in >/dev/null
-then generate="true"
-else generate="false";
-fi
-if $generate ; then
-{ $as_echo "$as_me:${as_lineno-$LINENO}: creating $pkgconfig_generate.in" >&5
-$as_echo "$as_me: creating $pkgconfig_generate.in" >&6;}
-cat > $pkgconfig_generate.in <<AXEOF
-# generated by configure / remove this line to disable regeneration
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-bindir=@bindir@
-libdir=@libdir@
-datarootdir=@datarootdir@
-datadir=@datadir@
-sysconfdir=@sysconfdir@
-includedir=@includedir@
-package=@PACKAGE@
-suffix=@suffix@
-
-Name: @PACKAGE_NAME@
-Description: @PACKAGE_DESCRIPTION@
-Version: @PACKAGE_VERSION@
-Requires: @PACKAGE_REQUIRES@
-Libs: -L\${libdir} @LDFLAGS@ @LIBS@
-Cflags: -I\${includedir} @CPPFLAGS@
-AXEOF
-fi # DONE generate $pkgconfig_generate.in
-{ $as_echo "$as_me:${as_lineno-$LINENO}: creating $pkgconfig_generate" >&5
-$as_echo "$as_me: creating $pkgconfig_generate" >&6;}
-cat >conftest.sed <<AXEOF
-s|@prefix@|${pkgconfig_prefix}|
-s|@exec_prefix@|${pkgconfig_execprefix}|
-s|@bindir@|${pkgconfig_bindir}|
-s|@libdir@|${pkgconfig_libdir}|
-s|@datarootdir@|${pkgconfig_datarootdir}|
-s|@datadir@|${pkgconfig_datadir}|
-s|@sysconfdir@|${pkgconfig_sysconfdir}|
-s|@includedir@|${pkgconfig_includedir}|
-s|@suffix@|${pkgconfig_suffix}|
-s|@PACKAGE@|${pkgconfig_package}|
-s|@PACKAGE_NAME@|${pkgconfig_libname}|
-s|@PACKAGE_DESCRIPTION@|${pkgconfig_description}|
-s|@PACKAGE_VERSION@|${pkgconfig_version}|
-s|@PACKAGE_REQUIRES@|${pkgconfig_requires}|
-s|@LIBS@|${pkgconfig_libs}|
-s|@LDFLAGS@|${pkgconfig_ldflags}|
-s|@CPPFLAGS@|${pkgconfig_cppflags}|
-AXEOF
-sed -f conftest.sed  $pkgconfig_generate.in > $pkgconfig_generate
-if test ! -s $pkgconfig_generate ; then
-    as_fn_error $? "$pkgconfig_generate is empty" "$LINENO" 5
-fi ; rm conftest.sed # DONE generate $pkgconfig_generate
-pkgconfig_uninstalled=`echo $pkgconfig_generate |sed 's/.pc$/-uninstalled.pc/'`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: creating $pkgconfig_uninstalled" >&5
-$as_echo "$as_me: creating $pkgconfig_uninstalled" >&6;}
-cat >conftest.sed <<AXEOF
-s|@prefix@|${pkgconfig_prefix}|
-s|@exec_prefix@|${pkgconfig_execprefix}|
-s|@bindir@|${pkgconfig_bindir}|
-s|@libdir@|${pkgconfig_src_libdir}|
-s|@datarootdir@|${pkgconfig_datarootdir}|
-s|@datadir@|${pkgconfig_datadir}|
-s|@sysconfdir@|${pkgconfig_sysconfdir}|
-s|@includedir@|${pkgconfig_src_headers}|
-s|@suffix@|${pkgconfig_suffix}|
-s|@PACKAGE@|${pkgconfig_package}|
-s|@PACKAGE_NAME@|${pkgconfig_libname}|
-s|@PACKAGE_DESCRIPTION@|${pkgconfig_description}|
-s|@PACKAGE_VERSION@|${pkgconfig_version}|
-s|@PACKAGE_REQUIRES@|${pkgconfig_requires}|
-s|@LIBS@|${pkgconfig_libs}|
-s|@LDFLAGS@|${pkgconfig_ldflags}|
-s|@CPPFLAGS@|${pkgconfig_cppflags}|
-AXEOF
-sed -f conftest.sed $pkgconfig_generate.in > $pkgconfig_uninstalled
-if test ! -s $pkgconfig_uninstalled ; then
-    as_fn_error $? "$pkgconfig_uninstalled is empty" "$LINENO" 5
-fi ; rm conftest.sed # DONE generate $pkgconfig_uninstalled
-           pkgconfig_requires_add=`echo ${pkgconfig_requires}`
-if test ".$pkgconfig_requires_add" != "." ; then
-           pkgconfig_requires_add="pkg-config $pkgconfig_requires_add"
-    else   pkgconfig_requires_add=":" ; fi
-pkgconfig_uninstalled=`echo $pkgconfig_generate |sed 's/.pc$/-uninstalled.sh/'`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: creating $pkgconfig_uninstalled" >&5
-$as_echo "$as_me: creating $pkgconfig_uninstalled" >&6;}
-cat >conftest.sed <<AXEOF
-s|@prefix@|\"${pkgconfig_prefix}\"|
-s|@exec_prefix@|\"${pkgconfig_execprefix}\"|
-s|@bindir@|\"${pkgconfig_bindir}\"|
-s|@libdir@|\"${pkgconfig_src_libdir}\"|
-s|@datarootdir@|\"${pkgconfig_datarootdir}\"|
-s|@datadir@|\"${pkgconfig_datadir}\"|
-s|@sysconfdir@|\"${pkgconfig_sysconfdir}\"|
-s|@includedir@|\"${pkgconfig_src_headers}\"|
-s|@suffix@|\"${pkgconfig_suffix}\"|
-s|@PACKAGE@|\"${pkgconfig_package}\"|
-s|@PACKAGE_NAME@|\"${pkgconfig_libname}\"|
-s|@PACKAGE_DESCRIPTION@|\"${pkgconfig_description}\"|
-s|@PACKAGE_VERSION@|\"${pkgconfig_version}\"|
-s|@PACKAGE_REQUIRES@|\"${pkgconfig_requires}\"|
-s|@LIBS@|\"${pkgconfig_libs}\"|
-s|@LDFLAGS@|\"${pkgconfig_ldflags}\"|
-s|@CPPFLAGS@|\"${pkgconfig_cppflags}\"|
-s>Name:>for option\\; do case \"\$option\" in --list-all|--name) echo >
-s>Description: *>\\;\\; --help) pkg-config --help \\; echo Buildscript Of >
-s>Version: *>\\;\\; --modversion|--version) echo >
-s>Requires:>\\;\\; --requires) echo $pkgconfig_requires_add>
-s>Libs: *>\\;\\; --libs) echo >
-s>Cflags: *>\\;\\; --cflags) echo >
-/--libs)/a\\
-       $pkgconfig_requires_add
-/--cflags)/a\\
-       $pkgconfig_requires_add\\
-;; --variable=*) eval echo '\$'\`echo \$option | sed -e 's/.*=//'\`\\
-;; --uninstalled) exit 0 \\
-;; *) ;; esac done
-AXEOF
-sed -f conftest.sed  $pkgconfig_generate.in > $pkgconfig_uninstalled
-if test ! -s $pkgconfig_uninstalled ; then
-    as_fn_error $? "$pkgconfig_uninstalled is empty" "$LINENO" 5
-fi ; rm conftest.sed # DONE generate $pkgconfig_uninstalled
  ;;
 
   esac

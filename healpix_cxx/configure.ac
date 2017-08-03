@@ -101,52 +101,142 @@ AX_CHECK_COMPILE_FLAG([-fno-signaling-nans],[CXXFLAGS="$CXXFLAGS -fno-signaling-
 AX_CHECK_COMPILE_FLAG([-fcx-limited-range],[CXXFLAGS="$CXXFLAGS -fcx-limited-range"])
 AC_LANG_POP([C++])
 
-dnl
-dnl Determine the compiler flags (CFITSIO_CFLAGS)
-dnl and linker flags (CFITSIO_LIBS) required to build against libcfitsio.
-dnl
-dnl Add help messages to describe the variables CFITSIO_CFLAGS and CFITSIO_LIBS,
-dnl which can be provided as environment variables or as command-line arguments.
-dnl These are output variables of PKG_CHECK_MODULES, but they can be overridden.
-dnl
-AC_ARG_VAR([CFITSIO_CFLAGS], [compiler flags needed for building with cfitsio, if not found by pkg-config])
-AC_ARG_VAR([CFITSIO_LIBS], [linker flags needed for building with cfitsio, if not found by pkg-config])
-dnl
-dnl Now check for cfitsio using pkg-config. If cfitsio is not found with
-dnl pkg-config, CFITSIO_LIBS defaults to "-lcfitsio".
-dnl
-PKG_CHECK_MODULES([CFITSIO], [cfitsio], , [CFITSIO_LIBS=-lcfitsio])
-dnl
-dnl Linking against libcfitsio requires libm too.
-dnl
-CFITSIO_LIBS="$CFITSIO_LIBS -lm"
-dnl
-dnl With pkg-config < 0.24, PKG_CHECK_MODULES does not AC_SUBST the _CFLAGS
-dnl and _LIBS variables.
-dnl
-AC_SUBST([CFITSIO_CFLAGS])
-AC_SUBST([CFITSIO_LIBS])
-dnl
-dnl Perform a test compile and link to determine if cfitsio is usable. If
-dnl pkg-config did not find cfitsio, then the user may still have provided
-dnl CFITSIO_CFLAGS and CFITSIO_LIBS manually. If pkg-config did find cfitsio,
-dnl it does not hurt to test that cfitsio is usable.
-dnl
-save_CFLAGS=$CFLAGS
-save_LIBS=$LIBS
-CFLAGS="$CFLAGS $CFITSIO_CFLAGS"
-LIBS="$LIBS $CFITSIO_LIBS"
+AC_ARG_WITH(libcfitsio,
+  [  --with-libcfitsio=<path>         prefix to the cfitsio installation],
+  [CPPFLAGS="-I$withval/include $CPPFLAGS"
+   LDFLAGS="-L$withval/lib $LDFLAGS"])
+AC_ARG_WITH(libcfitsio-include,
+  [  --with-libcfitsio-include=<path> path containing the cfitsio headers],
+  [CPPFLAGS="-I$withval $CPPFLAGS"])
+AC_ARG_WITH(libcfitsio-lib,
+  [  --with-libcfitsio-lib=<path>     path containing the cfitsio library],
+  [   LDFLAGS="-L$withval $LDFLAGS"])
+
+SILENT_RULE=".SILENT:"
+AC_ARG_ENABLE(noisy-make,
+  [  --enable-noisy-make     enable detailed make output],
+  [if test "$enableval" = yes; then
+     SILENT_RULE=""
+   fi])
+
+ENABLE_DEBUG=no
+AC_ARG_ENABLE(debug,
+  [  --enable-debug          enable generation of debugging symbols],
+  [if test "$enableval" = yes; then
+     ENABLE_DEBUG=yes
+   fi])
+
+ENABLE_NATIVE=no
+AC_ARG_ENABLE(
+    [native-optimizations],
+    [AS_HELP_STRING([--enable-native-optimizations], [Enable non-portable optimizations for your own CPU by compiling with -march=native @<:@default=no@:>@])],
+  [if test "$enableval" = yes; then
+     ENABLE_NATIVE=yes
+   fi])
+
+case $CCTYPE in
+  gcc)
+    CCFLAGS="-O3 -ffast-math -fomit-frame-pointer -fno-tree-vectorize"
+    GCCVERSION="`$CC -dumpversion 2>&1`"
+    echo "Using gcc version $GCCVERSION"
+    AC_SUBST(GCCVERSION)
+    case $system in
+      Darwin-*)
+        ;;
+      *)
+        CCFLAGS="$CCFLAGS -ffunction-sections -fdata-sections"
+        ;;
+    esac
+    changequote(,)
+    gcc43=`echo $GCCVERSION | grep -c '4\.[3456789]'`
+    changequote([,])
+    if test $ENABLE_NATIVE = yes; then
+      if test $gcc43 -gt 0; then
+        CCFLAGS="$CCFLAGS -march=native"
+      fi
+    fi
+    ;;
+  icc)
+    CCFLAGS="-O3 -Wbrief -Wall -openmp-report0 -wd383,981,1419,1572"
+    if test $ENABLE_NATIVE = yes; then
+      CCFLAGS="$CCFLAGS -xHOST"
+    fi
+    ;;
+  *)
+    CCFLAGS="-O2"
+    # Don't do anything now
+    ;;
+esac
+
+case $CXXTYPE in
+  g++)
+    CXXCFLAGS="-O2 -ffast-math -fomit-frame-pointer"
+    GXXVERSION="`$CXX -dumpversion 2>&1`"
+    echo "Using g++ version $GXXVERSION"
+    AC_SUBST(GXXVERSION)
+    case $system in
+      Darwin-*)
+        ;;
+      *)
+        CXXCFLAGS="$CXXCFLAGS -ffunction-sections -fdata-sections"
+        LDFLAGS="$LDFLAGS -Wl,--gc-sections"
+        ;;
+    esac
+    changequote(,)
+    gxx43=`echo $GXXVERSION | grep -c '4\.[3456789]'`
+    changequote([,])
+    if test $ENABLE_NATIVE = yes; then
+      if test $gxx43 -gt 0; then
+        CXXCFLAGS="$CXXCFLAGS -march=native"
+      fi
+    fi
+    ;;
+  icpc)
+    CXXCFLAGS="-O3 -Wbrief -Wall -openmp-report0 -wd383,444,981,1572"
+    if test $ENABLE_NATIVE = yes; then
+      CXXCFLAGS="$CXXCFLAGS -xHOST"
+    fi
+    ;;
+  *)
+    CXXCFLAGS="-O2"
+    ;;
+esac
+
+case $system in
+  Darwin-*)
+    ARCREATE="libtool -static -o"
+    ;;
+  *)
+    ARCREATE="ar cr"
+    ;;
+esac
+
+CCFLAGS="$CCFLAGS $OPENMP_CFLAGS"
+CXXCFLAGS="$CXXCFLAGS $OPENMP_CXXFLAGS"
+
+if test $ENABLE_DEBUG = yes; then
+  CCFLAGS="$CCFLAGS -g"
+  CXXCFLAGS="$CXXCFLAGS -g"
+fi
+
+CCFLAGS_NO_C="$CCFLAGS $CPPFLAGS"
+CXXCFLAGS_NO_C="$CXXCFLAGS $CPPFLAGS"
+
+LDCCFLAGS="$LDFLAGS $CCFLAGS"
+LDCXXFLAGS="$LDFLAGS $CXXCFLAGS"
+
 AC_CHECK_LIB([cfitsio], [ffgnrwll], [:], AC_MSG_ERROR([could not find the cfitsio library]))
 AC_CHECK_HEADERS([fitsio.h], [:], AC_MSG_ERROR([could not find the cfitsio header file]))
-CFLAGS=$save_CFLAGS
-LIBS=$save_LIBS
 
-AC_PROG_LIBTOOL
-
-dnl
-dnl Create pkgconfig .pc file.
-dnl
-AX_CREATE_PKGCONFIG_INFO(,,,,[$OPENMP_CFLAGS $CFITSIO_CFLAGS])
+AC_SUBST(SILENT_RULE)
+AC_SUBST(CC)
+AC_SUBST(CCFLAGS_NO_C)
+AC_SUBST(CXX)
+AC_SUBST(CXXCFLAGS_NO_C)
+AC_SUBST(LDCCFLAGS)
+AC_SUBST(LDCXXFLAGS)
+AC_SUBST(LIBS)
+AC_SUBST(ARCREATE)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
